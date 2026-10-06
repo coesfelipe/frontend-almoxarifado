@@ -1,0 +1,202 @@
+<!-- frontend/src/app/pages/stock/stock.html -->
+<app-navbar></app-navbar>
+
+<main class="page">
+
+  <!-- Cabeçalho da Página -->
+  <header class="page-header">
+    <div>
+      <h1>Estoque</h1>
+      <p>Acompanhe a quantidade e a situação de cada produto no almoxarifado.</p>
+    </div>
+    <a routerLink="/stock/create" class="btn-primary text-decoration-none">
+      + Novo produto
+    </a>
+  </header>
+
+  <!-- Indicador de Erro -->
+  @if (erro()) {
+    <div class="alert-error">
+      <span>{{ erro() }}</span>
+      <button type="button" (click)="carregarProdutos()">Tentar novamente</button>
+    </div>
+  }
+
+  <!-- Cards de Resumo KPIs -->
+  <section class="summary">
+    <div class="summary-item">
+      <span class="summary-number">{{ totalProdutos() }}</span>
+      <span class="summary-label">Produtos Cadastrados</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-number warn">{{ totalBaixos() }}</span>
+      <span class="summary-label">Estoque Baixo</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-number danger">{{ totalZerados() }}</span>
+      <span class="summary-label">Itens Zerados</span>
+    </div>
+  </section>
+
+  <!-- Barra de Busca e Filtros -->
+  <section class="toolbar">
+    <input
+      type="search"
+      class="search"
+      placeholder="Buscar por nome ou categoria..."
+      aria-label="Buscar produto"
+      [value]="busca()"
+      (input)="aoBuscar($event)" />
+
+    <div class="chips" role="group" aria-label="Filtros de estoque">
+      @for (f of filtros; track f.valor) {
+        <button
+          type="button"
+          class="chip"
+          [class.active]="filtro() === f.valor"
+          (click)="selecionarFiltro(f.valor)">
+          {{ f.texto }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Tabela de Produtos -->
+  <section class="table-card">
+    <div class="table-header-title d-flex justify-content-between align-items-center">
+      <strong>Listagem de Produtos ({{ filtrados().length }})</strong>
+      
+      <div class="per-page-selector">
+        <label for="perPage">Exibir:</label>
+        <select id="perPage" class="form-control-sm" (change)="alterarItensPorPagina($event)">
+          <option value="5">5 por pg</option>
+          <option value="10" selected>10 por pg</option>
+          <option value="20">20 por pg</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Produto</th>
+            <th>Categoria</th>
+            <th class="num">Quantidade</th>
+            <th>Unidade</th>
+            <th class="num">Preço</th>
+            <th>Situação</th>
+            <th class="actions-col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (carregando()) {
+            <tr>
+              <td colspan="8" class="empty">
+                Carregando produtos do servidor...
+              </td>
+            </tr>
+          } @else {
+            @for (p of paginados(); track p.id) {
+              <tr>
+                <td class="code">#{{ p.id }}</td>
+                <td class="name">{{ p.name }}</td>
+                <td>{{ p.category }}</td>
+                <td class="num">{{ p.currentStock }}</td>
+                <td>
+                  <span class="badge-unit">{{ p.measurement || 'UN' }}</span>
+                </td>
+                <td class="num">{{ p.price | currency:'BRL':'symbol':'1.2-2' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="status(p)">
+                    {{ status(p) === 'ok' ? 'Em estoque' : status(p) === 'baixo' ? 'Estoque baixo' : 'Zerado' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <a [routerLink]="['/stock/edit', p.id]" class="btn-action edit" title="Editar">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="18" 
+                        height="18" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                      </svg>
+                    </a>
+                    <button type="button" class="btn-action delete" (click)="excluirProduto(p.id, p.name)" title="Excluir">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="18" 
+                        height="18" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8" class="empty">
+                  Nenhum produto encontrado. Tente ajustar a busca ou o filtro selecionado.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rodapé de Paginação -->
+    @if (!carregando() && filtrados().length > 0) {
+      <footer class="pagination-footer">
+        <span class="pagination-info">
+          Página <strong>{{ paginaAtual() }}</strong> de <strong>{{ totalPaginas() }}</strong>
+        </span>
+
+        <div class="pagination-buttons">
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="paginaAtual() === 1"
+            (click)="irParaPagina(paginaAtual() - 1)">
+            ‹ Anterior
+          </button>
+
+          @for (pg of paginasArray(); track pg) {
+            <button
+              type="button"
+              class="btn-page num-page"
+              [class.active]="paginaAtual() === pg"
+              (click)="irParaPagina(pg)">
+              {{ pg }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="paginaAtual() === totalPaginas()"
+            (click)="irParaPagina(paginaAtual() + 1)">
+            Próxima ›
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+
+</main>

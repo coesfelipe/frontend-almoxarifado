@@ -1,0 +1,280 @@
+<app-navbar></app-navbar>
+
+<main class="page">
+  <header class="page-header">
+    <div>
+      <h1>Movimentação de Estoque</h1>
+      <p>Registre entradas e saídas de itens do almoxarifado de forma simples e auditável.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <div class="alert-error">
+      <span>{{ erro() }}</span>
+    </div>
+  }
+
+  @if (sucesso()) {
+    <div class="alert-success">
+      <span>{{ sucesso() }}</span>
+    </div>
+  }
+
+  <!-- Formulário de Nova Movimentação -->
+  <section class="card mb-4">
+    <form [formGroup]="form" (ngSubmit)="salvar()">
+      <div class="form-group mb-3">
+        <label class="form-label">Tipo de Movimentação *</label>
+        <div class="type-selector">
+          <button
+            type="button"
+            class="btn-type entry"
+            [class.active]="tipo() === 'ENTRY'"
+            (click)="selecionarTipo('ENTRY')">
+            ↓ Entrada no Estoque
+          </button>
+          <button
+            type="button"
+            class="btn-type exit"
+            [class.active]="tipo() === 'EXIT'"
+            (click)="selecionarTipo('EXIT')">
+            ↑ Saída do Estoque
+          </button>
+        </div>
+      </div>
+
+      <!-- Seletor de produto -->
+      <div class="form-group picker" [class.is-exit]="tipo() === 'EXIT'">
+        <label class="form-label">Produto *</label>
+
+        @if (produtoSelecionado(); as p) {
+          <div class="picker-selected">
+            <div>
+              <div class="picker-selected-name">{{ p.name }}</div>
+              <div class="picker-selected-meta">
+                Saldo atual: {{ p.currentStock }} {{ p.measurement || 'UN' }}
+              </div>
+            </div>
+            <button type="button" class="picker-change" (click)="limparProduto()">Trocar</button>
+          </div>
+        } @else {
+          <input
+            type="search"
+            class="form-control picker-search"
+            placeholder="Digite para buscar o produto..."
+            [ngModel]="buscaProduto()"
+            (ngModelChange)="buscaProduto.set($event)"
+            [ngModelOptions]="{ standalone: true }" />
+
+          <div class="picker-list">
+            @for (p of produtosFiltrados(); track p.id) {
+              <button
+                type="button"
+                class="picker-item"
+                [disabled]="indisponivel(p)"
+                (click)="selecionarProduto(p)">
+                <span class="picker-name">{{ p.name }}</span>
+                <span class="picker-stock" [class.zero]="p.currentStock < 1">
+                  {{ p.currentStock < 1 ? 'Sem saldo' : p.currentStock + ' ' + (p.measurement || 'UN') }}
+                </span>
+              </button>
+            } @empty {
+              <div class="picker-empty">Nenhum produto encontrado.</div>
+            }
+          </div>
+
+          @if (tipo() === 'EXIT') {
+            <p class="picker-note">Produtos sem saldo não podem ter saída.</p>
+          }
+        }
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="quantity" class="form-label">Quantidade *</label>
+          <input
+            type="number"
+            id="quantity"
+            formControlName="quantity"
+            class="form-control"
+            min="1"
+            [attr.max]="tipo() === 'EXIT' && produtoSelecionado() ? produtoSelecionado()!.currentStock : null" />
+          @if (tipo() === 'EXIT' && produtoSelecionado(); as p) {
+            <p class="field-hint">Máximo disponível: {{ p.currentStock }} {{ p.measurement || 'UN' }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="requester" class="form-label">Solicitante / Requisitante</label>
+          <input type="text" id="requester" formControlName="requester" class="form-control" placeholder="Ex: João da Silva (Setor de TI)" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">Descrição / Observação</label>
+        <input type="text" id="description" formControlName="description" class="form-control" placeholder="Ex: Setor dos laboratórios, Uso Interno..." />
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn-primary" [disabled]="salvando() || form.invalid">
+          @if (salvando()) {
+            <span>Registrando...</span>
+          } @else {
+            <span>Confirmar Movimentação</span>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Painel de Pesquisa e Filtros -->
+  <section class="card mb-4 search-card">
+    <div class="search-header mb-3">
+      <strong>Pesquisar e Filtrar Histórico</strong>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label class="form-label">Buscar por movimentação</label>
+        <input
+          type="search"
+          class="form-control"
+          placeholder="Nome da movimentação/produto..."
+          [ngModel]="buscaNome()"
+          (ngModelChange)="buscaNome.set($event); pesquisar()" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select
+          class="form-control"
+          [ngModel]="filtroTipo()"
+          (ngModelChange)="filtroTipo.set($event); pesquisar()">
+          <option value="">Todos os tipos</option>
+          <option value="ENTRY">Apenas Entradas</option>
+          <option value="EXIT">Apenas Saídas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label class="form-label">Data Inicial</label>
+        <input
+          type="date"
+          class="form-control"
+          [ngModel]="dataInicio()"
+          (ngModelChange)="dataInicio.set($event); pesquisar()" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Data Final</label>
+        <input
+          type="date"
+          class="form-control"
+          [ngModel]="dataFim()"
+          (ngModelChange)="dataFim.set($event); pesquisar()" />
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-2">
+      <button type="button" class="btn-secondary text-sm" (click)="limparFiltros()">Limpar Filtros</button>
+    </div>
+  </section>
+
+  <!-- Tabela do Histórico com Paginação -->
+  <section class="table-card">
+    <div class="table-header-title d-flex justify-content-between align-items-center">
+      <strong>Histórico de Movimentações ({{ historico().length }})</strong>
+
+      <div class="per-page-selector">
+        <label for="perPage">Exibir:</label>
+        <select id="perPage" class="form-control-sm" (change)="alterarItensPorPagina($event)">
+          <option value="5">5 por pg</option>
+          <option value="10" selected>10 por pg</option>
+          <option value="20">20 por pg</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th class="num">Qtd.</th>
+            <th>Solicitante</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (carregando()) {
+            <tr>
+              <td colspan="6" class="empty">Carregando histórico...</td>
+            </tr>
+          } @else {
+            @for (m of paginados(); track m.id) {
+              <tr>
+                <td>{{ m.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="name">{{ m.product?.name || '#' + m.productId }}</td>
+                <td>
+                  <span class="badge" [ngClass]="m.type === 'ENTRY' ? 'ok' : 'danger'">
+                    {{ m.type === 'ENTRY' ? 'ENTRADA' : 'SAÍDA' }}
+                  </span>
+                </td>
+                <td class="num">
+                  <strong>{{ m.type === 'ENTRY' ? '+' : '-' }}{{ m.quantity }}</strong>
+                </td>
+                <td>{{ m.requester || '-' }}</td>
+                <td>{{ m.description || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty">Nenhuma movimentação encontrada.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rodapé de Paginação -->
+    @if (!carregando() && historico().length > 0) {
+      <footer class="pagination-footer">
+        <span class="pagination-info">
+          Página <strong>{{ paginaAtual() }}</strong> de <strong>{{ totalPaginas() }}</strong>
+        </span>
+
+        <div class="pagination-buttons">
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="paginaAtual() === 1"
+            (click)="irParaPagina(paginaAtual() - 1)">
+            ‹ Anterior
+          </button>
+
+          @for (pg of paginasArray(); track pg) {
+            <button
+              type="button"
+              class="btn-page num-page"
+              [class.active]="paginaAtual() === pg"
+              (click)="irParaPagina(pg)">
+              {{ pg }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="paginaAtual() === totalPaginas()"
+            (click)="irParaPagina(paginaAtual() + 1)">
+            Próxima ›
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+</main>

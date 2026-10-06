@@ -1,0 +1,97 @@
+<main class="login-page">
+
+  <!-- Lado esquerdo: marca -->
+  <section class="login-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">A</div>
+      <span class="brand-name">Almoxarifado</span>
+    </div>
+
+    <div class="brand-message">
+      <h1>Crie sua conta em um minuto.</h1>
+      <p>Depois do cadastro, é só entrar para controlar entradas, saídas e notas fiscais.</p>
+    </div>
+
+    <p class="brand-footer">Gestão de Estoque · v2.5</p>
+  </section>
+
+  <!-- Lado direito: formulário -->
+  <section class="login-form-side">
+    <form class="login-card" [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+
+      <div class="login-header">
+        <h2>Criar conta</h2>
+        <p>Preencha os dados abaixo para se cadastrar.</p>
+      </div>
+
+      <div class="field">
+        <label for="username">Nome de usuário</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="ex: carlos.silva"
+          autocomplete="username"
+          [class.invalid]="campoInvalido('username')" />
+        <p class="field-error" [hidden]="!campoInvalido('username')">Use de 3 a 20 caracteres: letras, números, ponto ou _.</p>
+      </div>
+
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="voce@fainor.com.br"
+          autocomplete="email"
+          [class.invalid]="campoInvalido('email')" />
+        <p class="field-error" [hidden]="!campoInvalido('email')">Digite um e-mail válido.</p>
+      </div>
+
+      <div class="field">
+        <label for="senha">Senha</label>
+        <div class="password-wrap">
+          <input
+            id="senha"
+            [type]="mostrarSenha ? 'text' : 'password'"
+            formControlName="senha"
+            placeholder="Mínimo de 6 caracteres"
+            autocomplete="new-password"
+            [class.invalid]="campoInvalido('senha')" />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="mostrarSenha = !mostrarSenha"
+            [attr.aria-label]="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+            {{ mostrarSenha ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+        <p class="field-error" [hidden]="!campoInvalido('senha')">A senha precisa ter pelo menos 6 caracteres.</p>
+      </div>
+
+      <div class="field">
+        <label for="confirmar">Confirmar senha</label>
+        <input
+          id="confirmar"
+          [type]="mostrarSenha ? 'text' : 'password'"
+          formControlName="confirmar"
+          placeholder="Repita a senha"
+          autocomplete="new-password"
+          [class.invalid]="senhasDiferentes() || campoInvalido('confirmar')" />
+        <p class="field-error" [hidden]="!senhasDiferentes() && !campoInvalido('confirmar')">As senhas não são iguais.</p>
+      </div>
+
+      <p class="form-error" [hidden]="!erroCadastro">{{ erroCadastro }}</p>
+
+      <button type="submit" class="btn-login" [disabled]="carregando">
+        {{ carregando ? 'Criando conta...' : 'Criar conta' }}
+      </button>
+
+      <p class="form-switch">
+        Já tem uma conta? <a routerLink="/login" class="link">Entrar</a>
+      </p>
+
+    </form>
+  </section>
+
+</main>

@@ -1,0 +1,239 @@
+<!-- frontend/src/app/pages/dashboard/dashboard.html -->
+<app-navbar></app-navbar>
+
+<main class="page">
+  <header class="page-header">
+    <div>
+      <h1>Visão Geral do Almoxarifado</h1>
+      <p>Acompanhe o desempenho, nível de estoque e movimentações recentes em tempo real.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <div class="alert-error">
+      <span>{{ erro() }}</span>
+      <button type="button" (click)="carregarDados()">Tentar Novamente</button>
+    </div>
+  }
+
+  <!-- KPIs Globais -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon icon-blue">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ totalProdutos() }}</span>
+        <span class="kpi-label">Itens Cadastrados</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-green">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ valorTotalEstoque() | currency:'BRL':'symbol':'1.2-2' }}</span>
+        <span class="kpi-label">Valor Total do Estoque</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-amber">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value warn">{{ estoqueBaixoCount() }}</span>
+        <span class="kpi-label">Itens em Estoque Baixo</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-red">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value danger">{{ zeradosCount() }}</span>
+        <span class="kpi-label">Itens Esgotados</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Atalhos Rápidos de Ação -->
+  <section class="actions-grid mb-4">
+    <a routerLink="/stock/create" class="action-card">
+      <span class="action-icon">+</span>
+      <div class="action-text">
+        <strong>Novo Produto</strong>
+        <p>Cadastre um item manualmente no almoxarifado</p>
+      </div>
+    </a>
+
+    <a routerLink="/stock/create/xml" class="action-card">
+      <span class="action-icon">📄</span>
+      <div class="action-text">
+        <strong>Importar NF-e (XML)</strong>
+        <p>Faça a entrada automática de estoque via nota fiscal</p>
+      </div>
+    </a>
+
+    <a routerLink="/stock-movement" class="action-card">
+      <span class="action-icon">⇄</span>
+      <div class="action-text">
+        <strong>Registrar Movimentação</strong>
+        <p>Dar entrada ou dar saída de produtos do estoque</p>
+      </div>
+    </a>
+  </section>
+
+  <!-- Grid de Detalhes com Paginação -->
+  <div class="dashboard-details">
+    <!-- Tabela de Movimentações Recentes (Paginada) -->
+    <section class="table-card flex-2">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Últimas Movimentações ({{ movimentacoes().length }})</strong>
+        <a routerLink="/stock-movement" class="btn-link"> Ver histórico completo →</a>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Produto</th>
+              <th>Tipo</th>
+              <th class="num">Qtd.</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (carregando()) {
+              <tr>
+                <td colspan="4" class="empty">Carregando movimentações...</td>
+              </tr>
+            } @else {
+              @for (m of movimentacoesPaginadas(); track m.id) {
+                <tr>
+                  <td>{{ m.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="name">{{ m.product?.name || '#' + m.productId }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="m.type === 'ENTRY' ? 'ok' : 'danger'">
+                      {{ m.type === 'ENTRY' ? 'ENTRADA' : 'SAÍDA' }}
+                    </span>
+                  </td>
+                  <td class="num">
+                    <strong>{{ m.type === 'ENTRY' ? '+' : '-' }}{{ m.quantity }}</strong>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="empty">Nenhuma movimentação realizada ainda.</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rodapé de Paginação Movimentações -->
+      @if (!carregando() && movimentacoes().length > 0) {
+        <footer class="pagination-footer">
+          <span class="pagination-info">
+            Página <strong>{{ paginaMovimentacoes() }}</strong> de <strong>{{ totalPaginasMov() }}</strong>
+          </span>
+          <div class="pagination-buttons">
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="paginaMovimentacoes() === 1"
+              (click)="irParaPaginaMov(paginaMovimentacoes() - 1)">
+              ‹
+            </button>
+            @for (pg of paginasMovArray(); track pg) {
+              <button
+                type="button"
+                class="btn-page num-page"
+                [class.active]="paginaMovimentacoes() === pg"
+                (click)="irParaPaginaMov(pg)">
+                {{ pg }}
+              </button>
+            }
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="paginaMovimentacoes() === totalPaginasMov()"
+              (click)="irParaPaginaMov(paginaMovimentacoes() + 1)">
+              ›
+            </button>
+          </div>
+        </footer>
+      }
+    </section>
+
+    <!-- Resumo de Categorias (Paginado) -->
+    <section class="table-card flex-1">
+      <div class="card-header">
+        <strong>Produtos por Categoria ({{ resumoCategorias().length }})</strong>
+      </div>
+      <div class="category-list">
+        @if (carregando()) {
+          <div class="empty">Carregando categorias...</div>
+        } @else {
+          @for (cat of categoriasPaginadas(); track cat.nome) {
+            <div class="category-item">
+              <span class="category-name">{{ cat.nome }}</span>
+              <span class="category-badge">{{ cat.quantidade }} item(s)</span>
+            </div>
+          } @empty {
+            <div class="empty">Nenhuma categoria cadastrada.</div>
+          }
+        }
+      </div>
+
+      <!-- Rodapé de Paginação Categorias -->
+      @if (!carregando() && resumoCategorias().length > 0) {
+        <footer class="pagination-footer">
+          <span class="pagination-info">
+            Pág. <strong>{{ paginaCategorias() }}</strong> de <strong>{{ totalPaginasCat() }}</strong>
+          </span>
+          <div class="pagination-buttons">
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="paginaCategorias() === 1"
+              (click)="irParaPaginaCat(paginaCategorias() - 1)">
+              ‹
+            </button>
+            @for (pg of paginasCatArray(); track pg) {
+              <button
+                type="button"
+                class="btn-page num-page"
+                [class.active]="paginaCategorias() === pg"
+                (click)="irParaPaginaCat(pg)">
+                {{ pg }}
+              </button>
+            }
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="paginaCategorias() === totalPaginasCat()"
+              (click)="irParaPaginaCat(paginaCategorias() + 1)">
+              ›
+            </button>
+          </div>
+        </footer>
+      }
+    </section>
+  </div>
+</main>

@@ -1,0 +1,116 @@
+<app-navbar></app-navbar>
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Cadastrar Novo Produto</h2>
+  </div>
+
+  @if (erro()) {
+    <div class="alert alert-danger" role="alert">
+      {{ erro() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="card p-4 shadow-sm">
+    <!-- Nome do Produto -->
+    <div class="mb-3">
+      <label for="name" class="form-label">Nome do Produto *</label>
+      <input
+        type="text"
+        id="name"
+        formControlName="name"
+        class="form-control"
+        [class.is-invalid]="campoInvalido('name')"
+        placeholder="Ex: Teclado Mecânico"
+      />
+      @if (campoInvalido('name')) {
+        <div class="invalid-feedback">
+          O nome é obrigatório e deve ter pelo menos 3 caracteres.
+        </div>
+      }
+    </div>
+
+    <!-- Categoria -->
+    <div class="mb-3">
+      <label for="category" class="form-label">Categoria *</label>
+      <input
+        type="text"
+        id="category"
+        formControlName="category"
+        class="form-control"
+        [class.is-invalid]="campoInvalido('category')"
+        placeholder="Ex: Periféricos"
+      />
+      @if (campoInvalido('category')) {
+        <div class="invalid-feedback">A categoria é obrigatória.</div>
+      }
+    </div>
+
+    <div class="row">
+      <!-- Estoque Inicial -->
+      <div class="col-md-6 mb-3">
+        <label for="currentStock" class="form-label">Estoque Inicial *</label>
+        <input
+          type="number"
+          id="currentStock"
+          formControlName="currentStock"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('currentStock')"
+          min="0"
+        />
+        @if (campoInvalido('currentStock')) {
+          <div class="invalid-feedback">O estoque não pode ser negativo.</div>
+        }
+      </div>
+
+      <!-- Unidade de Medida -->
+      <div class="mb-3">
+        <label for="measurement" class="form-label">Unidade de Medida *</label>
+        <select
+          id="measurement"
+          formControlName="measurement"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('measurement')">
+          <option value="UN">Unidade (UN)</option>
+          <option value="KG">Quilograma (KG)</option>
+          <option value="L">Litro (L)</option>
+          <option value="CX">Caixa (CX)</option>
+          <option value="PCT">Pacote (PCT)</option>
+        </select>
+        @if (campoInvalido('measurement')) {
+          <div class="invalid-feedback">A unidade de medida é obrigatória.</div>
+        }
+      </div>
+
+      <!-- Preço (Opcional) -->
+      <div class="col-md-6 mb-3">
+        <label for="price" class="form-label">Preço (R$)</label>
+        <input
+          type="number"
+          id="price"
+          formControlName="price"
+          class="form-control"
+          step="0.01"
+          min="0"
+          placeholder="0.00"
+        />
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <a routerLink="/stock" class="btn btn-secondary">Cancelar</a>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="salvando() || form.invalid"
+      >
+        @if (salvando()) {
+          <span>Salvando...</span>
+        } @else {
+          <span>Salvar Produto</span>
+        }
+      </button>
+    </div>
+  </form>
+</div>

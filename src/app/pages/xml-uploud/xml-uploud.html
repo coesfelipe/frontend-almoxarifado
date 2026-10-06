@@ -1,0 +1,96 @@
+<app-navbar></app-navbar>
+
+<main class="page container my-4">
+  <header class="page-header mb-4">
+    <div>
+      <h1>Importar Nota Fiscal (XML)</h1>
+      <p>Faça o upload do XML da NF-e para cadastrar produtos automaticamente no almoxarifado.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <div class="alert-error mb-3">
+      <span>{{ erro() }}</span>
+    </div>
+  }
+
+  <!-- Zona de Drag and Drop -->
+  @if (produtosExtraidos().length === 0) {
+    <section 
+      class="dropzone"
+      (drop)="aoSoltarArquivo($event)"
+      (dragover)="aoArrastarSobre($event)">
+      
+      <div class="dropzone-content">
+        <svg class="dropzone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+
+        @if (carregando()) {
+          <p class="dropzone-title">Processando arquivo da Nota Fiscal...</p>
+        } @else {
+          <p class="dropzone-title">Arraste e solte o arquivo XML da NF-e aqui</p>
+          <p class="dropzone-subtitle">ou clique no botão abaixo para selecionar do computador</p>
+          
+          <label class="btn-primary mt-2 cursor-pointer">
+            Selecionar Arquivo .XML
+            <input type="file" accept=".xml" class="d-none" (change)="aoSelecionarArquivo($event)" />
+          </label>
+        }
+      </div>
+    </section>
+  } @else {
+    <!-- Tabela de Pré-visualização dos Produtos Extraídos -->
+    <section class="table-card">
+      <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+        <div>
+          <strong class="d-block">Produtos identificados na Nota Fiscal</strong>
+          <small class="text-muted">Arquivo: {{ arquivoSelecionado()?.name }}</small>
+        </div>
+        <button type="button" class="btn-secondary" (click)="limpar()">Trocar XML</button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Categoria (NCM)</th>
+              <th class="num">Qtd. Nota</th>
+              <th>Unidade</th>
+              <th class="num">Preço Unitário</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of produtosExtraidos(); track item.productName) {
+              <tr>
+                <td class="name">{{ item.productName }}</td>
+                <td>{{ item.category }} <small class="text-muted">({{ item.ncm }})</small></td>
+                <td class="num"><strong>{{ item.quantity }}</strong></td>
+                <td><span class="badge-unit">{{ item.measurement }}</span></td>
+                <td class="num">{{ item.unitPrice | currency:'BRL':'symbol':'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-3 d-flex justify-content-end gap-2 border-top">
+        <button type="button" class="btn-secondary" (click)="limpar()">Cancelar</button>
+        <button 
+          type="button" 
+          class="btn-primary" 
+          [disabled]="salvando()" 
+          (click)="confirmarEImportar()">
+          @if (salvando()) {
+            <span>Importando {{ produtosExtraidos().length }} produto(s)...</span>
+          } @else {
+            <span>Confirmar e Cadastrar no Estoque</span>
+          }
+        </button>
+      </div>
+    </section>
+  }
+</main>
