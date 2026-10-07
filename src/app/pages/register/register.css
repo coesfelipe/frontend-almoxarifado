@@ -43,24 +43,8 @@ button, input { font: inherit; }
   gap: 0.75rem;
 }
 
-.brand-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  background: var(--red);
-  color: var(--white);
-  font-size: 1.4rem;
-  font-weight: 700;
-  border-radius: var(--radius);
-}
-
-.brand-name {
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
 .brand-message h1 {
+  cursor: default;
   margin: 0 0 1rem;
   max-width: 14ch;
   font-size: clamp(2.2rem, 4vw, 3.4rem);
@@ -70,6 +54,7 @@ button, input { font: inherit; }
 }
 
 .brand-message p {
+  cursor: default;
   margin: 0;
   max-width: 36ch;
   font-size: 1.05rem;
@@ -78,6 +63,7 @@ button, input { font: inherit; }
 }
 
 .brand-footer {
+  cursor: default;
   margin: 0;
   font-size: 0.8rem;
   color: #8a8a8a;

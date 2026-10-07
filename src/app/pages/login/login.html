@@ -1,10 +1,18 @@
 <main class="login-page">
 
-  <!-- Lado esquerdo: marca -->
+  <!-- Lado esquerdo: Marca / Hero -->
   <section class="login-brand">
     <div class="brand-logo">
-      <div class="brand-icon">A</div>
-      <span class="brand-name">Almoxarifado</span>
+      <div class="brand-icon" aria-hidden="true">
+          <img 
+          src="/logo.webp" 
+          alt="Logo FAINOR" 
+          class="header-logo"
+          loading="lazy"
+          width="160"
+          height="50"
+        />
+      </div>
     </div>
 
     <div class="brand-message">
@@ -12,18 +20,30 @@
       <p>Controle entradas, saídas e notas fiscais em um só lugar.</p>
     </div>
 
-    <p class="brand-footer">Gestão de Estoque · v2.5</p>
+    <p class="brand-footer">Feito por Felipe Coelho</p>
   </section>
 
-  <!-- Lado direito: formulário -->
+  <!-- Lado direito: Formulário de Autenticação -->
   <section class="login-form-side">
-    <form class="login-card" [formGroup]="form" (ngSubmit)="entrar()" novalidate>
+    <form 
+      class="login-card" 
+      [formGroup]="form" 
+      (ngSubmit)="entrar()" 
+      novalidate>
 
-      <div class="login-header">
+      <header class="login-header">
         <h2>Entrar</h2>
         <p>Use seu e-mail e senha para acessar o sistema.</p>
-      </div>
+      </header>
 
+      <!-- Mensagem de erro geral da API -->
+      @if (erroLogin) {
+        <div class="form-error" role="alert" aria-live="polite">
+          {{ erroLogin }}
+        </div>
+      }
+
+      <!-- Campo E-mail -->
       <div class="field">
         <label for="email">E-mail</label>
         <input
@@ -32,10 +52,18 @@
           formControlName="email"
           placeholder="voce@fainor.com.br"
           autocomplete="email"
-          [class.invalid]="campoInvalido('email')" />
-        <p class="field-error" [hidden]="!campoInvalido('email')">Digite um e-mail válido.</p>
+          [class.invalid]="campoInvalido('email')"
+          [attr.aria-invalid]="campoInvalido('email')"
+          aria-describedby="email-error" />
+        
+        @if (campoInvalido('email')) {
+          <p id="email-error" class="field-error" role="alert">
+            Digite um e-mail válido.
+          </p>
+        }
       </div>
 
+      <!-- Campo Senha -->
       <div class="field">
         <label for="senha">Senha</label>
         <div class="password-wrap">
@@ -45,35 +73,54 @@
             formControlName="senha"
             placeholder="Sua senha"
             autocomplete="current-password"
-            [class.invalid]="campoInvalido('senha')" />
+            [class.invalid]="campoInvalido('senha')"
+            [attr.aria-invalid]="campoInvalido('senha')"
+            aria-describedby="senha-error" />
+
           <button
             type="button"
             class="toggle-password"
             (click)="mostrarSenha = !mostrarSenha"
-            [attr.aria-label]="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+            [attr.aria-label]="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
+            tabindex="-1">
             {{ mostrarSenha ? 'Ocultar' : 'Mostrar' }}
           </button>
         </div>
-        <p class="field-error" [hidden]="!campoInvalido('senha')">A senha precisa ter pelo menos 6 caracteres.</p>
+
+        @if (campoInvalido('senha')) {
+          <p id="senha-error" class="field-error" role="alert">
+            A senha precisa ter pelo menos 6 caracteres.
+          </p>
+        }
       </div>
 
+      <!-- Opções adicionais -->
       <div class="login-options">
         <label class="remember">
           <input type="checkbox" formControlName="lembrar" />
           <span>Lembrar de mim</span>
         </label>
-        <a href="#" class="link">Esqueci minha senha</a>
+        <a routerLink="/forgot-password" class="link">Esqueci minha senha</a>
       </div>
 
+      <!-- Ação Principal -->
+      <button 
+        type="submit" 
+        class="btn-login" 
+        [disabled]="carregando"
+        [attr.aria-busy]="carregando">
+        @if (carregando) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Entrando...</span>
+        } @else {
+          <span>Entrar</span>
+        }
+      </button>
+
+      <!-- Alternativa de cadastro -->
       <p class="form-switch">
         Não tem conta? <a routerLink="/register" class="link">Criar conta</a>
       </p>
-
-      <p class="form-error" [hidden]="!erroLogin">{{ erroLogin }}</p>
-
-      <button type="submit" class="btn-login" [disabled]="carregando">
-        {{ carregando ? 'Entrando...' : 'Entrar' }}
-      </button>
 
     </form>
   </section>

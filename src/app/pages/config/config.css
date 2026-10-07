@@ -1,0 +1,116 @@
+/* Variáveis de Tema Claro (Padrão) */
+:host {
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --input-bg: #ffffff;
+  --input-border: #cccccc;
+  --input-focus: #0066cc;
+  --btn-primary: #d32f2f;
+  --btn-disabled: #cccccc;
+  --switch-bg: #ccc;
+  --switch-checked: #0066cc;
+  --error-color: #d32f2f;
+}
+
+/* Layout Principal */
+.config-container {
+  background-color: var(--bg-page);
+  min-height: calc(100vh - 60px);
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.config-card {
+  background-color: var(--bg-card);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 520px;
+  transition: background-color 0.3s ease;
+}
+
+.config-header h2 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+.config-section h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 2rem 0;
+}
+
+/* Formulários */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.form-group input {
+  padding: 0.75rem 0.85rem;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--input-focus);
+}
+
+.error-text {
+  color: var(--error-color);
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--btn-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit:disabled {
+  background-color: var(--btn-disabled);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+

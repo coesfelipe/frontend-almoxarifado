@@ -1,3 +1,100 @@
 <app-navbar></app-navbar>
 
-<p style="display: flex; align-items: center; justify-content: center; padding: 2rem;">Página ainda em desenvolvimento....</p>
+<div class="config-container dark-theme">
+  <div class="config-card">
+    <header class="config-header">
+      <h2>Configurações da Conta</h2>
+      <p class="subtitle">Gerencie suas credenciais e preferências do sistema</p>
+    </header>
+
+    <hr class="divider" />
+
+    <!-- SEÇÃO 2: ALTERAR E-MAIL -->
+    <section class="config-section">
+      <h3>Alterar E-mail Institucional</h3>
+      <form>
+        <div class="form-group">
+          <label for="newEmail">Novo E-mail</label>
+          <input
+            id="newEmail"
+            type="email"
+            placeholder="novo.email@institucional.edu.br"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="passwordForEmail">Senha Atual (para confirmação)</label>
+          <input
+            id="passwordForEmail"
+            type="password"
+            placeholder="Confirme sua senha para alterar o e-mail"
+          />
+        </div>
+
+        <button type="button" class="btn-submit">
+          Atualizar E-mail
+        </button>
+      </form>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- SEÇÃO 3: ALTERAR SENHA -->
+    <section class="config-section">
+      <h3>Alterar Senha de Acesso</h3>
+
+      <!-- Mensagens de Feedback -->
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="currentPassword">Senha Atual</label>
+          <input
+            id="currentPassword"
+            type="password"
+            formControlName="currentPassword"
+            placeholder="Digite sua senha atual"
+          />
+          <small *ngIf="form.get('currentPassword')?.touched && form.get('currentPassword')?.hasError('required')" class="field-error">
+            A senha atual é obrigatória.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword">Nova Senha</label>
+          <input
+            id="newPassword"
+            type="password"
+            formControlName="newPassword"
+            placeholder="Mínimo de 6 caracteres"
+          />
+          <small *ngIf="form.get('newPassword')?.touched && form.get('newPassword')?.hasError('minlength')" class="field-error">
+            A nova senha deve ter no mínimo 6 caracteres.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Nova Senha</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="Repita a nova senha"
+          />
+          <small *ngIf="form.touched && form.hasError('mismatch')" class="field-error">
+            As senhas não coincidem.
+          </small>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          {{ loading ? 'Enviando...' : 'Alterar Senha' }}
+        </button>
+      </form>
+    </section>
+  </div>
+</div>

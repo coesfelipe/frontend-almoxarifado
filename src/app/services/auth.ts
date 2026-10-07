@@ -1,7 +1,12 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs'; // Adicionado Observable aqui
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,6 +17,7 @@ export class AuthService {
   private loginUrl = `${this.apiUrl}/auth/login`;
   private registerUrl = `${this.apiUrl}/auth/register`;
   private profileUrl = `${this.apiUrl}/auth/profile`;
+  private changePasswordUrl = `${this.apiUrl}/auth/change-password`; // Rota /auth/change-password
 
   login(dados: { email: string; senha: string }) {
     const body = { email: dados.email, password: dados.senha };
@@ -28,13 +34,17 @@ export class AuthService {
   }
 
   profile() {
-    return this.http.get<{ id: number; username: string; email: string;}>(
+    return this.http.get<{ id: number; username: string; email: string }>(
       this.profileUrl
     );
   }
 
   logout() {
     if (this.isBrowser) localStorage.removeItem('token');
+  }
+
+  changePassword(data: ChangePasswordDto): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(this.changePasswordUrl, data);
   }
 
   get token(): string | null {
